@@ -44,7 +44,7 @@ defmodule Nordnetex.Rest.Api do
     [
       hackney: [pool: :default] ++ auth,
       ssl: [{:versions, [:'tlsv1.2']}],
-      recv_timeout: 500
+      recv_timeout: 5000
     ]
   end
 end
