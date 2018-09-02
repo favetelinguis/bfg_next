@@ -61,7 +61,7 @@ defmodule Nordnetex.Session.SessionManager do
   def handle_info(:touch, %{session_key: session_key} = s) do
     Logger.info("Touching session")
     "/login"
-    |> Api.put([], session_key: session_key)
+    |> Api.put("", [], session_key: session_key)
     |> handle_touch_response(s)
   end
 
@@ -129,9 +129,7 @@ defmodule Nordnetex.Session.SessionManager do
     {:backoff, 4000, s}
   end
 
-  defp handle_touch_response({:ok, %{status_code: 200, body: body}}, s) do
-    Logger.info("Response code body #{inspect body}")
-
+  defp handle_touch_response({:ok, %{status_code: 200, body: %{"logged_in" => true}}}, s) do
     s = %{s |
       last_touch: DateTime.utc_now(),
       last_touch_ref: schedule_session_touch(s.touch_session_interval, s.last_touch_ref),
