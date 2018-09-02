@@ -37,8 +37,8 @@ defmodule Nordnetex.Session.SessionManager do
   ############################################################
   def start_link(), do: Connection.start_link(@me, nil, name: @me)
 
-  def get(endpoint, body) when is_map(body) and is_bitstring(endpoint),
-      do: Connection.call(@me, {:get, {endpoint, body}})
+  def get(path) when is_bitstring(path),
+      do: Connection.call(@me, {:get, path})
 
   ############################################################
   # Callbacks
@@ -59,6 +59,7 @@ defmodule Nordnetex.Session.SessionManager do
   end
 
   def handle_info(:touch, %{session_key: session_key} = s) do
+    Logger.info("Touching session")
     "/login"
     |> Api.put([], session_key: session_key)
     |> handle_touch_response(s)
@@ -71,8 +72,8 @@ defmodule Nordnetex.Session.SessionManager do
     {:reply, {:error, :closed}, s}
   end
 
-  def handle_call({:get, {endpoint, _body}}, _from, %{session_key: session_key} = s) do
-    endpoint
+  def handle_call({:get, path}, _from, %{session_key: session_key} = s) do
+    path
     |> Api.get([], session_key: session_key)
     |> handle_response(s)
   end
@@ -197,6 +198,8 @@ defmodule Nordnetex.Session.SessionManager do
 
   defp schedule_session_touch(timeout, last_ref) do
     if last_ref do Process.cancel_timer(last_ref) end
-    Process.send_after(self(), :touch, timeout * 1000) # Nordnet send seconds intervall convert to milliseconds
+     # Nordnet send seconds intervall convert to milliseconds
+     # Trigger session touch 10 seconds before timeout
+    Process.send_after(self(), :touch, (timeout - 10) * 1000)
   end
 end
