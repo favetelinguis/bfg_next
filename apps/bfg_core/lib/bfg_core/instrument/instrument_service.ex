@@ -10,4 +10,12 @@ defmodule BfgCore.Instrument.InstrumentService do
     def get_pip_for_instrument(_id) do
         1
     end
+     
+    def get_instruments() do
+        [2]
+    end
+
+    def get_all_instruments_for_currency(currency) do
+        [33]
+    end
 end
