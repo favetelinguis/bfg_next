@@ -1,6 +1,8 @@
 defmodule BfgCore.Instrument.InstrumentService do
     # TODO I could use a gen service here and in intit read a config of all the instruments I want to trade
     # and then in init get all the instrument and store internal from the @instrument_provider
+    # This should also be the place where I setup subscription on market stream for the instruments i hold in cache
+    # should have a fn like update with where I setup the subset of instrument i want here
     # @instrument_provider Application.get_env(:bfg_core, :instrument_provider)
 
     @doc """
