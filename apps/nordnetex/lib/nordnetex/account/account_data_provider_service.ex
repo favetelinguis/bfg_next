@@ -8,14 +8,17 @@ defmodule Nordnetex.Account.AccountDataProviderService do
   @impl true
   def get_latest_account_info do
     {:ok, response} = get("/accounts")
+
     response
-    |> Enum.filter(fn account -> !account["is_blocked"] end) # remove blocked accounts
+    # remove blocked accounts
+    |> Enum.filter(fn account -> !account["is_blocked"] end)
     |> Enum.map(fn account -> get_latest_account_info(account["accno"]) end)
   end
 
   @impl true
   def get_latest_account_info(account_id) do
     {:ok, response} = get("/accounts/#{account_id}")
+
     response
     |> map_to_account(account_id)
   end

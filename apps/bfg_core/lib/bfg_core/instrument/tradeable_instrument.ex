@@ -1,5 +1,4 @@
 defmodule BfgCore.Instrument.TradeableInstrument do
-
   def new(values) do
     %{
       # Unique identifier of the instrument. Can in some cases be 0 if the instrument is not tradable
@@ -8,6 +7,7 @@ defmodule BfgCore.Instrument.TradeableInstrument do
       symbol: Keyword.get(values, :symbol)
     }
   end
+
   # TODO nice to have get_tick(prize)
 
   """

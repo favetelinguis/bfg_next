@@ -12,12 +12,12 @@ defmodule Nordnetex.Rest.Api do
 
   def process_request_headers(headers) do
     headers ++
-    [
-      "Accept": "application/json",
-      "Accept-Encoding": "gzip, deflate",
-      "Connection": "keep-alive",
-      "Accept-Language": "en"
-    ]
+      [
+        Accept: "application/json",
+        "Accept-Encoding": "gzip, deflate",
+        Connection: "keep-alive",
+        "Accept-Language": "en"
+      ]
   end
 
   def process_response_body(body) when not is_nil(body) do
@@ -36,14 +36,18 @@ defmodule Nordnetex.Rest.Api do
   end
 
   def process_request_options(options) do
-    auth = case Keyword.get(options, :session_key) do
-      nil -> []
-      session_key ->
-        [basic_auth: {session_key, session_key}]
-    end
+    auth =
+      case Keyword.get(options, :session_key) do
+        nil ->
+          []
+
+        session_key ->
+          [basic_auth: {session_key, session_key}]
+      end
+
     [
       hackney: [pool: :default] ++ auth,
-      ssl: [{:versions, [:'tlsv1.2']}],
+      ssl: [{:versions, [:"tlsv1.2"]}],
       recv_timeout: 5000
     ]
   end

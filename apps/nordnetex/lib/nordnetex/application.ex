@@ -8,6 +8,8 @@ defmodule Nordnetex.Application do
   def start(_type, _args) do
     # List all child processes to be supervised
     children = [
+      Nordnetex.Stream.SubscriptionStore,
+      Nordnetex.Stream.MarketStreamMessageHub,
       Nordnetex.Session.SessionSupervisor
     ]
 

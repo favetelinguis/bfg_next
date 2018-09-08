@@ -3,9 +3,10 @@
 use Mix.Config
 
 config :bfg_core,
-       account_data_provider: Nordnetex.Account.AccountDataProviderService,
-       min_amount_required: 10000,
-       instrument_provider: Nordnetex.Instrument.InstrumentDataProviderService
+  account_data_provider: Nordnetex.Account.AccountDataProviderService,
+  min_amount_required: 10000,
+  instrument_provider: Nordnetex.Instrument.InstrumentDataProviderService,
+  market_stream_provider: Nordnetex.Stream.MarketStreamProviderService
 
 # This configuration is loaded before any dependency and is restricted
 # to this project. If another project depends on this project, this

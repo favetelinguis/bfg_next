@@ -12,7 +12,8 @@ defmodule Nordnetex.Session.SessionSupervisor do
   @impl true
   def init(_arg) do
     children = [
-      Nordnetex.Session.SessionManager
+      Nordnetex.Session.SessionManager,
+      Nordnetex.Stream.SubscriptionManager
     ]
 
     Supervisor.init(children, strategy: :one_for_all)

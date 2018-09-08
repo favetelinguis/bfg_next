@@ -5,6 +5,7 @@ defmodule NordnetexTest do
   test "greets the world" do
     encryptAuthParameter("favetelinguis", ".Junk123")
     |> IO.inspect()
+
     assert Nordnetex.hello() == :world
   end
 
@@ -12,7 +13,10 @@ defmodule NordnetexTest do
   def encryptAuthParameter(user, password) do
     # Convert to Base64
     now_str = DateTime.utc_now() |> DateTime.to_unix(:millisecond) |> Integer.to_string()
-    login_msg = Base.encode64(user) <> ":" <> Base.encode64(password) <> ":" <> Base.encode64(now_str)
+
+    login_msg =
+      Base.encode64(user) <> ":" <> Base.encode64(password) <> ":" <> Base.encode64(now_str)
+
     # Use public key to encode message
     raw_p_key = File.read!(filename)
     [enc_p_key] = :public_key.pem_decode(raw_p_key)
@@ -23,6 +27,5 @@ defmodule NordnetexTest do
   end
 
   def getKeyFromPEM(filename) do
-
   end
 end

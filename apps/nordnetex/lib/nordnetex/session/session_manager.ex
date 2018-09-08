@@ -26,11 +26,12 @@ defmodule Nordnetex.Session.SessionManager do
     public_feed_hostname: nil,
     public_feed_port: nil,
     private_feed_hostname: nil,
-    private_feed_port: nil,
+    private_feed_port: nil
   }
 
   alias Nordnetex.Rest.Api
   alias Nordnetex.Session.Crypto
+  alias Nordnetex.Stream.SubscriptionManager
 
   ############################################################
   # Client
@@ -38,7 +39,7 @@ defmodule Nordnetex.Session.SessionManager do
   def start_link(), do: Connection.start_link(@me, nil, name: @me)
 
   def get(path) when is_bitstring(path),
-      do: Connection.call(@me, {:get, path})
+    do: Connection.call(@me, {:get, path})
 
   ############################################################
   # Callbacks
@@ -53,6 +54,7 @@ defmodule Nordnetex.Session.SessionManager do
     body = %{auth: blob, service: @service_id}
 
     headers = ["content-type": "application/json"]
+
     "/login"
     |> Api.post(body, headers)
     |> handle_login_response(s)
@@ -60,6 +62,7 @@ defmodule Nordnetex.Session.SessionManager do
 
   def handle_info(:touch, %{session_key: session_key} = s) do
     Logger.info("Touching session")
+
     "/login"
     |> Api.put("", [], session_key: session_key)
     |> handle_touch_response(s)
@@ -91,20 +94,35 @@ defmodule Nordnetex.Session.SessionManager do
   ############################################################
   defp handle_login_response({:ok, %{status_code: 200, body: body}}, s) do
     # Sucessful login, setup keep alive interval and streams
-    Logger.info("Response code body #{inspect body}")
+    Logger.info("Response code body #{inspect(body)}")
+    session_key = body["session_key"]
 
-    s = %{s |
-        alive: true,
+    public_feed_hostname = String.to_charlist(body["public_feed"]["hostname"])
+    public_feed_port = body["public_feed"]["port"]
+    private_feed_hostname = String.to_charlist(body["private_feed"]["hostname"])
+    private_feed_port = body["private_feed"]["port"]
+
+    s = %{
+      s
+      | alive: true,
         login_time: DateTime.utc_now(),
         last_touch: DateTime.utc_now(),
-        session_key: body["session_key"],
+        session_key: session_key,
         touch_session_interval: body["expires_in"],
         last_touch_ref: schedule_session_touch(body["expires_in"], s.last_touch_ref),
-        public_feed_hostname: body["public_feed"]["hostname"],
-        public_feed_port: body["public_feed"]["port"],
-        private_feed_hostname: body["private_feed"]["hostname"],
-        private_feed_port: body["private_feed"]["port"],
+        public_feed_hostname: public_feed_hostname,
+        public_feed_port: public_feed_port,
+        private_feed_hostname: private_feed_hostname,
+        private_feed_port: private_feed_port
     }
+
+    # Setup subscriptions
+    SubscriptionManager.subscribe_market_stream(
+      session_key,
+      {public_feed_hostname, public_feed_port}
+    )
+
+    # SubscriptionManager.subscribe_order_stream(session_token, {private_feed_hostname, private_feed_port})
     {:ok, s}
   end
 
@@ -125,15 +143,17 @@ defmodule Nordnetex.Session.SessionManager do
 
   defp handle_login_response(response, s) do
     # TODO for all other error I should just try to reconnect
-    Logger.warn("Unhandled response #{inspect response}")
+    Logger.warn("Unhandled response #{inspect(response)}")
     {:backoff, 4000, s}
   end
 
   defp handle_touch_response({:ok, %{status_code: 200, body: %{"logged_in" => true}}}, s) do
-    s = %{s |
-      last_touch: DateTime.utc_now(),
-      last_touch_ref: schedule_session_touch(s.touch_session_interval, s.last_touch_ref),
+    s = %{
+      s
+      | last_touch: DateTime.utc_now(),
+        last_touch_ref: schedule_session_touch(s.touch_session_interval, s.last_touch_ref)
     }
+
     {:noreply, s}
   end
 
@@ -154,16 +174,14 @@ defmodule Nordnetex.Session.SessionManager do
 
   defp handle_touch_response(response, s) do
     # TODO for all other error I should just try to reconnect
-    Logger.warn("Unhandled response #{inspect response}")
+    Logger.warn("Unhandled response #{inspect(response)}")
     {:stop, :error, s}
   end
 
   defp handle_response({:ok, %{status_code: 200, body: body}}, s) do
-    Logger.info("Response code body #{inspect body}")
+    Logger.info("Response code body #{inspect(body)}")
 
-    s = %{s |
-      last_touch_ref: schedule_session_touch(s.touch_session_interval, s.last_touch_ref),
-    }
+    s = %{s | last_touch_ref: schedule_session_touch(s.touch_session_interval, s.last_touch_ref)}
     {:reply, {:ok, body}, s}
   end
 
@@ -180,7 +198,10 @@ defmodule Nordnetex.Session.SessionManager do
   end
 
   defp handle_response({:ok, %{status_code: 403}}, s) do
-    Logger.error("User is logged in but user or system does not have priviliges to use this endpoint")
+    Logger.error(
+      "User is logged in but user or system does not have priviliges to use this endpoint"
+    )
+
     {:reply, {:error, :nordnet_error}, s}
   end
 
@@ -190,14 +211,17 @@ defmodule Nordnetex.Session.SessionManager do
   end
 
   defp handle_response(response, s) do
-    Logger.warn("Unhandled response #{inspect response}")
+    Logger.warn("Unhandled response #{inspect(response)}")
     {:reply, {:error, :nordnet_error}, s}
   end
 
   defp schedule_session_touch(timeout, last_ref) do
-    if last_ref do Process.cancel_timer(last_ref) end
-     # Nordnet send seconds intervall convert to milliseconds
-     # Trigger session touch 10 seconds before timeout
+    if last_ref do
+      Process.cancel_timer(last_ref)
+    end
+
+    # Nordnet send seconds intervall convert to milliseconds
+    # Trigger session touch 10 seconds before timeout
     Process.send_after(self(), :touch, (timeout - 10) * 1000)
   end
 end

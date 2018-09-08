@@ -1,5 +1,5 @@
 defmodule BfgCore.Account do
-  @moduledoc  """
+  @moduledoc """
   Holds account information
   """
 

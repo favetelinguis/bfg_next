@@ -7,7 +7,9 @@ defmodule Nordnetex.Instrument.InstrumentProviderService do
 
   @impl true
   def get_instruments do
-    {:ok, response} = get("/instruments?query=*") #TODO this sucks i just get 100 first
+    # TODO this sucks i just get 100 first
+    {:ok, response} = get("/instruments?query=*")
+
     response
     |> Enum.map(&map_to_instrument/1)
   end
@@ -16,7 +18,7 @@ defmodule Nordnetex.Instrument.InstrumentProviderService do
     TradeableInstrument.new(
       tradeable_id: instrument["instrument_id"],
       symbol: instrument["symbol"]
-      #TODO need to also fill in tick size
+      # TODO need to also fill in tick size
     )
   end
 end

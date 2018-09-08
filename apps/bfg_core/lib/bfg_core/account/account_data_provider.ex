@@ -1,5 +1,4 @@
 defmodule BfgCore.Account.AccountDataProvider do
-
   @moduledoc """
   A provider of Account information. An account information might typically
   include:
