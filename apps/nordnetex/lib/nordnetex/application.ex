@@ -10,6 +10,7 @@ defmodule Nordnetex.Application do
     children = [
       Nordnetex.Stream.SubscriptionStore,
       Nordnetex.Stream.MarketStreamMessageHub,
+      Nordnetex.Stream.OrderStreamMessageHub,
       Nordnetex.Session.SessionSupervisor
     ]
 

@@ -33,7 +33,7 @@ defmodule Nordnetex.Stream.MarketStreamMessageHub do
   """
   def handle_cast({:handle_message, msg}, state) do
     case Poison.Parser.parse!(msg) do
-      %{"type" => "heartbeat"} = message -> Logger.debug("Got heatbeat")
+      %{"type" => "heartbeat"} -> Logger.debug("Market stream Got heartbeat")
       %{"type" => "price"} = message -> Logger.info("Got price: #{inspect(message["data"])}")
       %{"type" => "news"} = message -> Logger.info("Got news: #{inspect(message["data"])}")
       message -> Logger.warn("In handle message catch all and got #{inspect(message)}")
