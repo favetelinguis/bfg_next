@@ -10,7 +10,6 @@ defmodule Nordnetex.Stream.MarketStreamProviderService do
     session_key: nil,
     connection_details: nil,
     active_subscriptions: %{},
-    msg: "",
     keep_alive_ref: nil
   }
   alias Nordnetex.Stream.SubscriptionStore
@@ -78,7 +77,7 @@ defmodule Nordnetex.Stream.MarketStreamProviderService do
         %{connection_details: {host, port}, session_key: session_key, active_subscriptions: subs} =
           state
       ) do
-    opts = [:binary, active: :once]
+    opts = [:binary, active: :once, packet: :line]
 
     case :ssl.connect(host, port, opts) do
       {:ok, socket} ->
@@ -115,7 +114,7 @@ defmodule Nordnetex.Stream.MarketStreamProviderService do
   def terminate(_reason, state) do
     Logger.warn("Market stream terminate called, closing socket")
     :ssl.close(state.socket)
-    state = %{state | socket: nil, msg: "", keep_alive_ref: nil}
+    state = %{state | socket: nil, keep_alive_ref: nil}
     SubscriptionStore.set_market_subscription_state(state)
   end
 
@@ -134,17 +133,11 @@ defmodule Nordnetex.Stream.MarketStreamProviderService do
   keep alive period then a error is logged since the connection is dead
   """
   @impl true
-  def handle_info({:ssl, socket, msg}, %{socket: socket, msg: acc_msg} = state) do
+  def handle_info({:ssl, socket, msg}, %{socket: socket} = state) do
     # Reactivate socket to recive next message
     :ssl.setopts(socket, active: :once)
-
-    if String.ends_with?(msg, "\n") do
-      MarketStreamMessageHub.handle_message(acc_msg <> msg)
-      {:noreply, %{state | msg: "", keep_alive_ref: reschedule_keep_alive(state.keep_alive_ref)}}
-    else
-      # Need to concatenate string until \n
-      {:noreply, %{state | msg: acc_msg <> msg}}
-    end
+    MarketStreamMessageHub.handle_message(msg)
+    {:noreply, %{state | keep_alive_ref: reschedule_keep_alive(state.keep_alive_ref)}}
   end
 
   @impl true
@@ -201,7 +194,7 @@ defmodule Nordnetex.Stream.MarketStreamProviderService do
     %{state | active_subscriptions: Map.drop(state.active_subscriptions, [key])}
   end
 
-  defp handle_resubscriptions(socket, subscriptions) when subscriptions == %{} do
+  defp handle_resubscriptions(_socket, subscriptions) when subscriptions == %{} do
     Logger.debug("No subscriptions to resubscribe to")
     nil
   end
