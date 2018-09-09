@@ -39,7 +39,7 @@ defmodule Nordnetex.Stream.OrderStream do
         %{connection_details: {host, port}, session_key: session_key} =
           state
       ) do
-    opts = [:binary, active: :once, packet: :line]
+    opts = [:binary, active: :once, packet: :line] #packet line lets erlang buffer until /n and full message
 
     case :ssl.connect(host, port, opts) do
       {:ok, socket} ->
