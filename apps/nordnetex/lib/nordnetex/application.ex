@@ -9,9 +9,7 @@ defmodule Nordnetex.Application do
     # List all child processes to be supervised
     children = [
       Nordnetex.Stream.SubscriptionStore,
-      Nordnetex.Stream.MarketStreamMessageHub,
-      Nordnetex.Stream.OrderStreamMessageHub,
-      Nordnetex.Session.SessionSupervisor
+      Nordnetex.Session.SessionProviderService
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

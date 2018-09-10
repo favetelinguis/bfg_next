@@ -39,7 +39,10 @@ defmodule Nordnetex.Stream.OrderStream do
         %{connection_details: {host, port}, session_key: session_key} =
           state
       ) do
-    opts = [:binary, active: :once, packet: :line] #packet line lets erlang buffer until /n and full message
+    # packet line lets erlang buffer until /n, if large message is sent so that buffer is filled up
+    # message will be truncated so make sure the buffer is larger than any message i can get, I have set the buffer
+    # to the same size as the recbuf by inspecting using :ssl.getopts(socket, [:sndbuf, :recbuf, :buffer])}
+    opts = [:binary, active: :once, packet: :line, buffer: 131860] 
 
     case :ssl.connect(host, port, opts) do
       {:ok, socket} ->

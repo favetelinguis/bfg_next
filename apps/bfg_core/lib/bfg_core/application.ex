@@ -8,8 +8,7 @@ defmodule BfgCore.Application do
   def start(_type, _args) do
     # List all child processes to be supervised
     children = [
-      # Starts a worker by calling: BfgCore.Worker.start_link(arg)
-      # {BfgCore.Worker, arg},
+      {BfgCore.Order.OrderExecutionService, nil}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

@@ -41,6 +41,15 @@ defmodule Nordnetex.Session.SessionManager do
   def get(path) when is_bitstring(path),
     do: Connection.call(@me, {:get, path})
 
+  def post(path, body) when is_bitstring(path),
+    do: Connection.call(@me, {:post, {path, body}})
+
+  def put(path, body) when is_bitstring(path),
+    do: Connection.call(@me, {:put, {path, body}})
+
+  def delete(path) when is_bitstring(path),
+    do: Connection.call(@me, {:delete, path})
+
   ############################################################
   # Callbacks
   ############################################################
@@ -78,6 +87,24 @@ defmodule Nordnetex.Session.SessionManager do
   def handle_call({:get, path}, _from, %{session_key: session_key} = s) do
     path
     |> Api.get([], session_key: session_key)
+    |> handle_response(s)
+  end
+
+  def handle_call({:post, {path, body}}, _from, %{session_key: session_key} = s) do
+    path
+    |> Api.post(Poison.encode!(body), [], session_key: session_key)
+    |> handle_response(s)
+  end
+
+  def handle_call({:put, {path, body}}, _from, %{session_key: session_key} = s) do
+    path
+    |> Api.put(Poison.encode!(body), [], session_key: session_key)
+    |> handle_response(s)
+  end
+
+  def handle_call({:delete, path}, _from, %{session_key: session_key} = s) do
+    path
+    |> Api.delete([], session_key: session_key)
     |> handle_response(s)
   end
 

@@ -1,5 +1,6 @@
 defmodule BfgCore.Account.AccountInfoService do
   # TODO could do this into genserver and poll account data, dont want to call at every order
+  # OBS OBS I must do this!!!
   @account_data_provider Application.get_env(:bfg_core, :account_data_provider)
   #  @current_price_info_provider Application.get_env(:bfg_core, :current_price_info_provider)
   #  @provider_helper Application.get_env(:bfg_core, :provider_helper)

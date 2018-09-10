@@ -6,6 +6,8 @@ config :bfg_core,
   account_data_provider: Nordnetex.Account.AccountDataProviderService,
   min_amount_required: 10000,
   instrument_provider: Nordnetex.Instrument.InstrumentDataProviderService,
+  order_management_provider: Nordnetex.Order.OrderManagementProviderService,
+  session_provider: Nordnetex.Session.SessionProviderService,
   market_stream_provider: Nordnetex.Stream.MarketStreamProviderService
 
 # This configuration is loaded before any dependency and is restricted

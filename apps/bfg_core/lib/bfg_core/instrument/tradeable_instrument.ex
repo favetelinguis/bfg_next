@@ -2,6 +2,7 @@ defmodule BfgCore.Instrument.TradeableInstrument do
   def new(values) do
     %{
       # Unique identifier of the instrument. Can in some cases be 0 if the instrument is not tradable
+      market_id: nil,
       instrument_id: Keyword.get(values, :instrument_id),
       tick_size: Keyword.get(values, :tick_size),
       symbol: Keyword.get(values, :symbol)

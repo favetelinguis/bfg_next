@@ -1,4 +1,4 @@
-defmodule Bfg.Application do
+defmodule BfgBot.Application do
   # See https://hexdocs.pm/elixir/Application.html
   # for more information on OTP Applications
   @moduledoc false
@@ -8,13 +8,13 @@ defmodule Bfg.Application do
   def start(_type, _args) do
     # List all child processes to be supervised
     children = [
-      # Starts a worker by calling: Bfg.Worker.start_link(arg)
-      # {Bfg.Worker, arg},
+      # Starts a worker by calling: BfgBot.Worker.start_link(arg)
+      # {BfgBot.Worker, arg},
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
-    opts = [strategy: :one_for_one, name: Bfg.Supervisor]
+    opts = [strategy: :one_for_one, name: BfgBot.Supervisor]
     Supervisor.start_link(children, opts)
   end
 end

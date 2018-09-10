@@ -14,24 +14,24 @@ defmodule Nordnetex.Stream.OrderStreamMessageHub do
 
   def handle_message(msg), do: GenServer.cast(@me, {:handle_message, msg})
 
-  def start_link(_) do
-    GenServer.start_link(@me, nil, name: @me)
+  def start_link(event_handler) do
+    GenServer.start_link(@me, event_handler, name: @me)
   end
 
-  def init(_) do
-    {:ok, nil}
+  def init(event_handler) do
+    {:ok, event_handler}
   end
 
   @doc """
   """
-  def handle_cast({:handle_message, msg}, state) do
+  def handle_cast({:handle_message, msg}, event_handler) do
     case Poison.Parser.parse!(msg) do
       %{"type" => "heartbeat"} -> Logger.debug("Order stream Got heartbeat")
-      %{"type" => "order"} = message -> Logger.info("Got order: #{inspect(message["data"])}")
-      %{"type" => "trade"} = message -> Logger.info("Got trade: #{inspect(message["data"])}")
+      %{"type" => "order"} = message -> event_handler.handle_order(message["data"])
+      %{"type" => "trade"} = message -> event_handler.handle_order(message["data"])
       message -> Logger.warn("In handle message catch all and got #{inspect(message)}")
     end
 
-    {:noreply, state}
+    {:noreply, event_handler}
   end
 end
