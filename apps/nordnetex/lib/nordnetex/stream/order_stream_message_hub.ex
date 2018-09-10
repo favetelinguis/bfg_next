@@ -29,7 +29,7 @@ defmodule Nordnetex.Stream.OrderStreamMessageHub do
     case Poison.Parser.parse!(msg) do
       %{"type" => "heartbeat"} -> Logger.debug("Order stream Got heartbeat")
       %{"type" => "order"} = message -> event_handler.handle_order(message["data"])
-      %{"type" => "trade"} = message -> event_handler.handle_order(message["data"])
+      %{"type" => "trade"} = message -> event_handler.handle_trade(message["data"])
       message -> Logger.warn("In handle message catch all and got #{inspect(message)}")
     end
 

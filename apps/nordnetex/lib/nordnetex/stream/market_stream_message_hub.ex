@@ -8,9 +8,6 @@ defmodule Nordnetex.Stream.MarketStreamMessageHub do
   use GenServer
   require Logger
 
-  @price_handler nil
-  @news_handler nil
-
   @me __MODULE__
 
   def handle_message(msg), do: GenServer.cast(@me, {:handle_message, msg})
