@@ -32,9 +32,14 @@ defmodule Nordnetex.Stream.MarketStreamMessageHub do
   %{"data" => %{"cmd" => %{"args" => %{"s" => 2, "t" => "news"}, "cmd" => "subscribe"}, "msg" => "Not authorized."}, "type" => "err"}
   """
   def handle_cast({:handle_message, msg}, event_handler) do
+    #TODO should convert to BfgCore types before sending data
     case Poison.Parser.parse!(msg) do
       %{"type" => "heartbeat"} -> Logger.debug("Market stream Got heartbeat")
-      %{"type" => "price"} = message -> event_handler.handle_price(message["data"])
+      %{"type" => "price"} = message -> 
+        # process_time = DateTime.utc_now
+        # {:ok, tick_timestamp} = DateTime.from_unix(message["data"]["tick_timestamp"], :millisecond) # Think this is in local time?
+        # Logger.info(DateTime.diff(process_time, tick_timestamp, :millisecond))
+        event_handler.handle_price(message["data"])
       %{"type" => "news"} = message -> event_handler.handle_price(message["data"])
       message -> Logger.warn("In handle message catch all and got #{inspect(message)}")
     end

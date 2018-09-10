@@ -25,6 +25,7 @@ defmodule Nordnetex.Stream.OrderStreamMessageHub do
   @doc """
   """
   def handle_cast({:handle_message, msg}, event_handler) do
+    #TODO should convert to BfgCore types before sending data
     case Poison.Parser.parse!(msg) do
       %{"type" => "heartbeat"} -> Logger.debug("Order stream Got heartbeat")
       %{"type" => "order"} = message -> event_handler.handle_order(message["data"])
