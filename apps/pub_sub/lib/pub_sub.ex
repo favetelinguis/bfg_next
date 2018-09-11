@@ -6,10 +6,12 @@ defmodule PubSub do
   def start_link do
     Logger.info(fn -> "Starting pubsub registry" end)
     :ets.new(:pub_sub_ets, [:set, :named_table, :public, write_concurrency: true])
+
     Registry.start_link(
       keys: :duplicate,
       partitions: System.schedulers_online(),
-      name: @me)
+      name: @me
+    )
   end
 
   @doc """
@@ -21,15 +23,19 @@ defmodule PubSub do
     if Enum.emty?(Registry.lookup(@me, topic)) do
       Registry.register(@me, topic, [])
     end
+
     get(topic)
   end
 
   def publish(%_{} = data) do
     key = data.__struct__
+
     Registry.dispatch(@me, key, fn entries ->
       for {pid, _} <- entries, do: send(pid, data)
     end)
-    put(key, data) # Put after i dispatch so if i subscribe at the same time i will get the new value in the inbox
+
+    # Put after i dispatch so if i subscribe at the same time i will get the new value in the inbox
+    put(key, data)
   end
 
   def publish(_) do

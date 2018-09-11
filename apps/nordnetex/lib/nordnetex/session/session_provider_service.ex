@@ -1,9 +1,9 @@
 defmodule Nordnetex.Session.SessionProviderService do
-    require Logger 
-    
-    @behaviour BfgCore.Session.SessionProvider 
+  require Logger
+
+  @behaviour BfgCore.Session.SessionProvider
   @me __MODULE__
-    
+
   def start_link() do
     Logger.info("#{@me} started")
 
@@ -21,16 +21,18 @@ defmodule Nordnetex.Session.SessionProviderService do
     }
   end
 
-    @impl true
+  @impl true
   def connect(private_event_handler, public_event_handler) do
     DynamicSupervisor.start_child(
       @me,
       {Nordnetex.Stream.MarketStreamMessageHub, public_event_handler}
     )
+
     DynamicSupervisor.start_child(
       @me,
       {Nordnetex.Stream.OrderStreamMessageHub, private_event_handler}
     )
+
     DynamicSupervisor.start_child(
       @me,
       Nordnetex.Session.SessionSupervisor

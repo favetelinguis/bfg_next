@@ -80,7 +80,7 @@ defmodule Nordnetex.Stream.MarketStreamProviderService do
     # packet line lets erlang buffer until /n, if large message is sent so that buffer is filled up
     # message will be truncated so make sure the buffer is larger than any message i can get, I have set the buffer
     # to the same size as the recbuf by inspecting using :ssl.getopts(socket, [:sndbuf, :recbuf, :buffer])}
-    opts = [:binary, active: :once, packet: :line, buffer: 131860] 
+    opts = [:binary, active: :once, packet: :line, buffer: 131_860]
 
     case :ssl.connect(host, port, opts) do
       {:ok, socket} ->

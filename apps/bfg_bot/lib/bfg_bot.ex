@@ -13,6 +13,9 @@ defmodule BfgBot do
 
   """
   def start do
-    BfgCore.connect(BfgBot.EventHandler.PrivateEventHandler, BfgBot.EventHandler.PublicEventHandler)
+    BfgCore.connect(
+      BfgBot.EventHandler.PrivateEventHandler,
+      BfgBot.EventHandler.PublicEventHandler
+    )
   end
 end

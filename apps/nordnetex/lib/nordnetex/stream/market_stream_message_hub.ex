@@ -3,7 +3,6 @@ defmodule Nordnetex.Stream.MarketStreamMessageHub do
   This modules only purpose is to offload all the work from the stream connecton and instead do it here
   so that the stream connection is as fast as possible.
 
-  Right now the implementation is minimal be we could also move handle heartbeat here and parse the message here
   """
   use GenServer
   require Logger
@@ -29,18 +28,53 @@ defmodule Nordnetex.Stream.MarketStreamMessageHub do
   %{"data" => %{"cmd" => %{"args" => %{"s" => 2, "t" => "news"}, "cmd" => "subscribe"}, "msg" => "Not authorized."}, "type" => "err"}
   """
   def handle_cast({:handle_message, msg}, event_handler) do
-    #TODO should convert to BfgCore types before sending data
+    # TODO should convert to BfgCore types before sending data
     case Poison.Parser.parse!(msg) do
-      %{"type" => "heartbeat"} -> Logger.debug("Market stream Got heartbeat")
-      %{"type" => "price"} = message -> 
+      %{"type" => "heartbeat"} ->
+        Logger.debug("Market stream Got heartbeat")
+
+      %{"type" => "price"} = message ->
         # process_time = DateTime.utc_now
         # {:ok, tick_timestamp} = DateTime.from_unix(message["data"]["tick_timestamp"], :millisecond) # Think this is in local time?
         # Logger.info(DateTime.diff(process_time, tick_timestamp, :millisecond))
+        event_handler.handle_price(convert_to_price(message["data"]))
+
+      %{"type" => "news"} = message ->
         event_handler.handle_price(message["data"])
-      %{"type" => "news"} = message -> event_handler.handle_price(message["data"])
-      message -> Logger.warn("In handle message catch all and got #{inspect(message)}")
+
+      message ->
+        Logger.warn("In handle message catch all and got #{inspect(message)}")
     end
 
     {:noreply, event_handler}
+  end
+
+  defp convert_to_price(data) do
+    BfgCore.Price.new(
+      data["i"],
+      data["m"],
+      if data["trade_timestamp"] do
+        DateTime.from_unix!(data["trade_timestamp"], :millisecond)
+      else
+        nil
+      end,
+      if data["tick_timestamp"] do
+        DateTime.from_unix!(data["tick_timestamp"], :millisecond)
+      else
+        nil
+      end,
+      data["bid"],
+      data["bid_volume"],
+      data["ask"],
+      data["ask_volume"],
+      data["open"],
+      data["high"],
+      data["low"],
+      data["close"],
+      data["turnover_volume"],
+      data["turnover"],
+      data["last"],
+      data["last_volume"]
+    )
   end
 end

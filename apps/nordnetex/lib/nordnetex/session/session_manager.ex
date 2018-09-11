@@ -149,7 +149,11 @@ defmodule Nordnetex.Session.SessionManager do
       {public_feed_hostname, public_feed_port}
     )
 
-    SubscriptionManager.subscribe_order_stream(session_key, {private_feed_hostname, private_feed_port})
+    SubscriptionManager.subscribe_order_stream(
+      session_key,
+      {private_feed_hostname, private_feed_port}
+    )
+
     {:ok, s}
   end
 
