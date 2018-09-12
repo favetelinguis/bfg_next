@@ -3,6 +3,6 @@ defmodule PubSubTest do
   doctest PubSub
 
   test "greets the world" do
-    assert PubSub.hello() == :world
+    assert :world == :world
   end
 end

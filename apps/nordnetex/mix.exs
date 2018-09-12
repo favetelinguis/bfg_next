@@ -29,6 +29,8 @@ defmodule Nordnetex.MixProject do
       {:connection, "~> 1.0.4"},
       {:httpoison, "~> 1.0"},
       {:poison, "~> 3.1"},
+      {:mox, "~> 0.4", only: :test},
+      {:bypass, "~> 0.8", only: :test},
       {:credo, "~> 0.10.0", only: [:dev, :test], runtime: false},
       {:mix_test_watch, "~> 0.6", only: :dev, runtime: false}
     ]

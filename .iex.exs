@@ -17,3 +17,5 @@ login = fn -> SessionManager.start_link(usr, pwd, key) end
 #bfsup = fn -> BfgEngine.Betfairex.BetfairexSupervisor.start_link(nil) end
 #invalidate = fn -> BfgEngine.Betfairex.Session.SessionManager.invalidate_session() end
 # {:ok, pid} = Connection.start_link(usr, pwd, "aa")
+
+seric = fn -> BfgCore.Stream.MarketStreamService.subscribe_price("101", 11) end

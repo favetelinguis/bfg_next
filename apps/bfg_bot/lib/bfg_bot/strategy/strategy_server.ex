@@ -10,7 +10,6 @@ defmodule BfgBot.Strategy.StrategyServer do
   }
 
   def start_link(market_and_identifer) do
-    Logger.info("Starting strategy server for #{inspect market_and_identifer}")
     GenServer.start_link(__MODULE__, market_and_identifer, name: via_tuple(market_and_identifer))
   end
 
@@ -18,6 +17,7 @@ defmodule BfgBot.Strategy.StrategyServer do
 
   @impl true
   def init(market_and_identifer) do
+    Logger.info("Starting strategy server for #{inspect market_and_identifer}")
     {:ok, %{@init_state | market_id: market_and_identifer}}
   end
 

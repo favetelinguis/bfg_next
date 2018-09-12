@@ -8,7 +8,7 @@ defmodule BfgBot do
 
   ## Examples
 
-      iex> BfgBot.hello
+      iex> :world 
       :world
 
   """

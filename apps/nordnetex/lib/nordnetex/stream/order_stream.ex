@@ -2,6 +2,7 @@ defmodule Nordnetex.Stream.OrderStream do
   use Connection
   require Logger
   @me __MODULE__
+  @ssl Application.get_env(:nordnetex, :stream_connector)
 
   @initial_state %{
     socket: nil,
@@ -37,15 +38,11 @@ defmodule Nordnetex.Stream.OrderStream do
         _,
         %{connection_details: {host, port}, session_key: session_key} = state
       ) do
-    # packet line lets erlang buffer until /n, if large message is sent so that buffer is filled up
-    # message will be truncated so make sure the buffer is larger than any message i can get, I have set the buffer
-    # to the same size as the recbuf by inspecting using :ssl.getopts(socket, [:sndbuf, :recbuf, :buffer])}
-    opts = [:binary, active: :once, packet: :line, buffer: 131_860]
 
-    case :ssl.connect(host, port, opts) do
+    case @ssl.connect(host, port) do
       {:ok, socket} ->
         data = %{"cmd" => "login", "args" => %{"session_key" => session_key}}
-        :ok = :ssl.send(socket, Poison.encode!(data) <> "\n")
+        :ok = @ssl.send(socket, data)
         Logger.info("Order stream login ok")
         {:ok, %{state | socket: socket}}
 
@@ -64,7 +61,7 @@ defmodule Nordnetex.Stream.OrderStream do
     end
 
     # Try to close dont care if it fails
-    :ssl.close(socket)
+    @ssl.close(socket)
     {:backoff, 5000, state}
   end
 
@@ -75,7 +72,7 @@ defmodule Nordnetex.Stream.OrderStream do
   @impl true
   def terminate(_reason, state) do
     Logger.warn("Order stream terminate called, closing socket")
-    :ssl.close(state.socket)
+    @ssl.close(state.socket)
     state = %{state | socket: nil, keep_alive_ref: nil}
     SubscriptionStore.set_order_subscription_state(state)
   end
@@ -96,8 +93,7 @@ defmodule Nordnetex.Stream.OrderStream do
   """
   @impl true
   def handle_info({:ssl, socket, msg}, %{socket: socket} = state) do
-    # Reactivate socket to recive next message
-    :ssl.setopts(socket, active: :once)
+    @ssl.setopts(socket)
     OrderStreamMessageHub.handle_message(msg)
     {:noreply, %{state | keep_alive_ref: reschedule_keep_alive(state.keep_alive_ref)}}
   end

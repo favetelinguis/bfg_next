@@ -3,6 +3,6 @@ defmodule BfgCoreTest do
   doctest BfgCore
 
   test "greets the world" do
-    assert BfgCore.hello() == :world
+    assert :world == :world
   end
 end

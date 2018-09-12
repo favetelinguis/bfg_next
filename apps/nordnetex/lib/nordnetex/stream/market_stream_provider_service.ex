@@ -2,6 +2,7 @@ defmodule Nordnetex.Stream.MarketStreamProviderService do
   use Connection
   require Logger
   @me __MODULE__
+  @ssl Application.get_env(:nordnetex, :stream_connector)
 
   @behaviour BfgCore.Stream.MarketStreamProvider
 
@@ -77,17 +78,13 @@ defmodule Nordnetex.Stream.MarketStreamProviderService do
         %{connection_details: {host, port}, session_key: session_key, active_subscriptions: subs} =
           state
       ) do
-    # packet line lets erlang buffer until /n, if large message is sent so that buffer is filled up
-    # message will be truncated so make sure the buffer is larger than any message i can get, I have set the buffer
-    # to the same size as the recbuf by inspecting using :ssl.getopts(socket, [:sndbuf, :recbuf, :buffer])}
-    opts = [:binary, active: :once, packet: :line, buffer: 131_860]
 
-    case :ssl.connect(host, port, opts) do
+    case @ssl.connect(host, port) do
       {:ok, socket} ->
         data = %{"cmd" => "login", "args" => %{"session_key" => session_key}}
-        :ok = :ssl.send(socket, Poison.encode!(data) <> "\n")
+        :ok = @ssl.send(socket, data)
         handle_resubscriptions(socket, subs)
-        Logger.info("Market stream subscription ok")
+        Logger.info("Market stream login ok")
         {:ok, %{state | socket: socket}}
 
       {:error, _reason} ->
@@ -105,7 +102,7 @@ defmodule Nordnetex.Stream.MarketStreamProviderService do
     end
 
     # Try to close dont care if it fails
-    :ssl.close(socket)
+    @ssl.close(socket)
     {:backoff, 5000, state}
   end
 
@@ -116,7 +113,7 @@ defmodule Nordnetex.Stream.MarketStreamProviderService do
   @impl true
   def terminate(_reason, state) do
     Logger.warn("Market stream terminate called, closing socket")
-    :ssl.close(state.socket)
+    @ssl.close(state.socket)
     state = %{state | socket: nil, keep_alive_ref: nil}
     SubscriptionStore.set_market_subscription_state(state)
   end
@@ -138,7 +135,7 @@ defmodule Nordnetex.Stream.MarketStreamProviderService do
   @impl true
   def handle_info({:ssl, socket, msg}, %{socket: socket} = state) do
     # Reactivate socket to recive next message
-    :ssl.setopts(socket, active: :once)
+    @ssl.setopts(socket)
     MarketStreamMessageHub.handle_message(msg)
     {:noreply, %{state | keep_alive_ref: reschedule_keep_alive(state.keep_alive_ref)}}
   end
@@ -166,14 +163,14 @@ defmodule Nordnetex.Stream.MarketStreamProviderService do
   @impl true
   def handle_cast({:send_data, data, :subscribe, key}, %{socket: socket} = state) do
     Logger.debug("Sending message: #{inspect(data)}")
-    :ok = :ssl.send(socket, Poison.encode!(data) <> "\n")
+    :ok = @ssl.send(socket, data)
     {:noreply, add_subscription(state, key, data)}
   end
 
   @impl true
   def handle_cast({:send_data, data, :unsubscribe, key}, %{socket: socket} = state) do
     Logger.debug("Sending message: #{inspect(data)}")
-    :ok = :ssl.send(socket, Poison.encode!(data) <> "\n")
+    :ok = @ssl.send(socket, data)
     {:noreply, remove_subscription(state, key)}
   end
 
@@ -205,7 +202,7 @@ defmodule Nordnetex.Stream.MarketStreamProviderService do
   defp handle_resubscriptions(socket, subscriptions) do
     Enum.each(subscriptions, fn {_key, data} ->
       Logger.info("Resubscribing #{inspect(data)}")
-      :ok = :ssl.send(socket, Poison.encode!(data) <> "\n")
+      :ok = @ssl.send(socket, data)
     end)
   end
 end

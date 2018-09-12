@@ -10,7 +10,7 @@ defmodule BfgCore do
 
   ## Examples
 
-      iex> BfgCore.hello
+      iex> :world
       :world
 
   """

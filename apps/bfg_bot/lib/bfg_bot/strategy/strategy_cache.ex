@@ -24,9 +24,7 @@ defmodule BfgBot.Strategy.StrategyCache do
   Returns the pid of the started process
   """
   def server_process(market_and_identifier) do
-    id = start_child(market_and_identifier)
-    |> IO.inspect()
-    case id do
+    case start_child(market_and_identifier) do
       {:ok, pid} -> pid
       {:error, {:already_started, pid}} -> pid
     end
