@@ -23,3 +23,5 @@ erl_crash.dump
 *.pem
 *.iml
 .DS_Store
+.ipynb_checkpoints
+SampleEquityData*
