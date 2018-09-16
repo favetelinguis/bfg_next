@@ -10,10 +10,8 @@ defmodule Nordnetex.Stream.StreamConnectorProviderService do
     # to the same size as the recbuf by inspecting using :ssl.getopts(socket, [:sndbuf, :recbuf, :buffer])}
     opts = [:binary, active: :once, packet: :line]
     {:ok, socket} = :ssl.connect(host, port, opts)
-    Logger.info("here1 #{inspect :ssl.getopts(socket, [:sndbuf, :recbuf])}")
     {:ok, sizes} = :ssl.getopts(socket, [:sndbuf, :recbuf])
     {_, size} = Enum.max(sizes)
-    Logger.info("here2")
     :ssl.setopts(socket, buffer: size)
     Logger.info("Socket buffer size set to: #{inspect :ssl.getopts(socket, [:buffer])}")
     {:ok, socket}
