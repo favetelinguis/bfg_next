@@ -34,9 +34,11 @@ defmodule Nordnetex.Stream.MarketStreamMessageHub do
         Logger.debug("Market stream Got heartbeat")
 
       %{"type" => "price"} = message ->
-        # process_time = DateTime.utc_now
-        # {:ok, tick_timestamp} = DateTime.from_unix(message["data"]["tick_timestamp"], :millisecond) # Think this is in local time?
-        # Logger.info(DateTime.diff(process_time, tick_timestamp, :millisecond))
+        # TODO not a reliable way, tick_timestamp can be very old and just resent, not sure how well this will work in prod
+        # is there some header in the message that tells the server time or how to mesure latency?
+        process_time = Timex.now("Europe/Stockholm")
+        {:ok, tick_timestamp} = DateTime.from_unix(message["data"]["tick_timestamp"], :millisecond)
+        Logger.info("Price data latency in ms : #{inspect DateTime.diff(process_time, tick_timestamp, :millisecond)}")
         event_handler.handle_price(convert_to_price(message["data"]))
 
       %{"type" => "news"} = message ->
