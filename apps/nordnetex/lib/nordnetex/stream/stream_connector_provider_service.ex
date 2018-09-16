@@ -1,5 +1,6 @@
 defmodule Nordnetex.Stream.StreamConnectorProviderService do
 
+  require Logger
   @behaviour Nordnetex.Stream.MarketStreamProvider
 
   @impl true
@@ -7,8 +8,15 @@ defmodule Nordnetex.Stream.StreamConnectorProviderService do
     # packet line lets erlang buffer until /n, if large message is sent so that buffer is filled up
     # message will be truncated so make sure the buffer is larger than any message i can get, I have set the buffer
     # to the same size as the recbuf by inspecting using :ssl.getopts(socket, [:sndbuf, :recbuf, :buffer])}
-    opts = [:binary, active: :once, packet: :line, buffer: 131_860]
-    :ssl.connect(host, port, opts)
+    opts = [:binary, active: :once, packet: :line]
+    {:ok, socket} = :ssl.connect(host, port, opts)
+    Logger.info("here1 #{inspect :ssl.getopts(socket, [:sndbuf, :recbuf])}")
+    {:ok, sizes} = :ssl.getopts(socket, [:sndbuf, :recbuf])
+    {_, size} = Enum.max(sizes)
+    Logger.info("here2")
+    :ssl.setopts(socket, buffer: size)
+    Logger.info("Socket buffer size set to: #{inspect :ssl.getopts(socket, [:buffer])}")
+    {:ok, socket}
   end
 
   @impl true
