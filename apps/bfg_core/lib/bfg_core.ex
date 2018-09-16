@@ -3,18 +3,7 @@ defmodule BfgCore do
   Documentation for BfgCore.
   """
 
-  @session_provider Application.get_env(:bfg_core, :session_provider)
+  alias BfgCore.Session.SessionProviderService
 
-  @doc """
-  Hello world.
-
-  ## Examples
-
-      iex> :world
-      :world
-
-  """
-  def connect(private_feed_event_handler, public_feed_event_handler) do
-    @session_provider.connect(private_feed_event_handler, public_feed_event_handler)
-  end
+  defdelegate connect(url, port), to: SessionProviderService
 end
